@@ -13,7 +13,8 @@ public class LevelGenerator : MonoBehaviour {
 
 	public GameObject[] levelBlockPrefabs;
 	public GameObject startLevelBlock;
-	public GameObject HeroPrefab;
+	public GameObject heroPrefab;
+	public GameObject hero;
 
 	public STATE state = STATE.STATIC;
 	public LevelBlock.ORIENTATION startLevelBlockOrientation;
@@ -57,16 +58,16 @@ public class LevelGenerator : MonoBehaviour {
 
 	private void StaticUpdate() // Charles Henry le maniaque
 	{
-		if (Input.GetKeyDown(KeyCode.RightArrow)){
+		if (Input.GetKeyDown(KeyCode.LeftArrow)){
+			hero.GetComponent<Hero>().ChangeRoad();
 			currentOrientation = (++currentOrientation)%6;
-			Debug.Log(currentOrientation);
 			state = STATE.TRANSITION;
 		}
-		if (Input.GetKeyDown(KeyCode.LeftArrow)){
+		if (Input.GetKeyDown(KeyCode.RightArrow)){
+			hero.GetComponent<Hero>().ChangeRoad();
 			currentOrientation = (--currentOrientation)%6;
 			if (currentOrientation < 0)
 				currentOrientation += 6;
-			Debug.Log(currentOrientation);
 			state = STATE.TRANSITION;
 		}
 	}

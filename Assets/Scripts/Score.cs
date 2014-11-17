@@ -4,21 +4,19 @@ using System.Collections;
 public class Score : MonoBehaviour {
 
 	// Use this for initialization
-	public GameObject Hero;
+	public GameObject hero;
+	public int value;
 
-	void Start () 
-	{
-	
+	void Start (){
+		value = 0;
 	}
 	
 	// Update is called once per frame
-	void Update () 
-	{
+	void Update (){
 	
 	}
 
-	public static void IncrementScoreCoin()
-	{
-
+	public void IncrementScore(int inc){
+		value += inc;
 	}
 }

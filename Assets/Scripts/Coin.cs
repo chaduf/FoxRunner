@@ -4,13 +4,12 @@ using System.Collections;
 public class Coin : MonoBehaviour {
 
 	// Use this for initialization
-	public GameObject player;
-
-	private Collider colPlay;
+	public GameObject scoreCounter;
+	public ParticleSystem fxPrebab;
 
 	void Start () 
 	{
-		colPlay = player.collider;
+
 	}
 	
 	// Update is called once per frame
@@ -19,19 +18,16 @@ public class Coin : MonoBehaviour {
 		
 	}
 
-	void OnTriggerEnter(Collider col)
-	{
+	void OnTriggerEnter(Collider collider){
+		Score scoreScript = scoreCounter.GetComponent<Score>();
 
+		if (collider.gameObject == scoreScript.hero){
+			scoreScript.IncrementScore(1);
 
-		
-		Score.IncrementScoreCoin();
-		Debug.Log("CoinTouched");
-		Destroy (this.gameObject);
-		Debug.Log("Destroyed");
-
-
-
-		
+			ParticleSystem fx = (ParticleSystem)Instantiate(fxPrebab, transform.position, Quaternion.identity);
+			Destroy(fx, 0.5F);
+			Destroy (gameObject);
+		}
 	}
 
 }

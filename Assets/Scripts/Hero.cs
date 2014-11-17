@@ -15,16 +15,20 @@ public class Hero : MonoBehaviour {
 		STAND_BY
 	};
 
+	public ParticleSystem landFxPrefab;
 	public STATE state = STATE.AERIAL;
 	public float height;
 	public float jumpPower;
+	public float changeJumpPower;
 	public float gravity;
 	public bool useGravity;
 
-	private void Jump(){
-		rigidbody.velocity += jumpPower*transform.up;
+	private void Jump(float power){
+		Debug.Log("I jump");
+		transform.Translate (new Vector3 (0, 1E-1F, 0));
+		rigidbody.velocity += power*transform.up;
 		state = STATE.AERIAL;
-	}
+	} 
 
 	private void Fall(){
 		state = STATE.AERIAL;
@@ -32,20 +36,23 @@ public class Hero : MonoBehaviour {
 
 	private void RunningUpdate(){
 		if (Input.GetKey(KeyCode.Space)){
-			Debug.Log("I jump");
-			Jump ();
+			Jump (jumpPower);
 		}
 
-		if (!Physics.Raycast (this.transform.position, -transform.up, height/2 + 1E-1F)) {
+//		if (!Physics.Raycast (transform.position, -transform.up, height/2 + 10.0F)) {
+		if (!rigidbody.detectCollisions) {
+			Debug.Log("I fall");
 			Fall ();
 		}
 	}
 
 	private void AerialUpdate(){
 		if (Physics.Raycast (transform.position, -transform.up, height/2)) {
+			Debug.Log("I land");
 			state = STATE.RUNNING;
+			ParticleSystem landFx = (ParticleSystem)Instantiate(landFxPrefab, transform.position - (height - 1E-1F) * transform.up, Quaternion.identity);
+			Destroy (landFx, 0.5F);
 			rigidbody.velocity = Vector3.zero;
-			transform.position = new Vector3(0, transform.position.y, 0);
 		}
 	}
 
@@ -60,6 +67,13 @@ public class Hero : MonoBehaviour {
 
 	}
 
+	public void ChangeRoad(){
+		if (state == STATE.RUNNING){
+			Debug.Log("I change");
+			Jump (changeJumpPower);
+		}
+	}
+
 	// Use this for initialization
 	void Start () {
 		state = STATE.STAND_BY;
@@ -71,6 +85,7 @@ public class Hero : MonoBehaviour {
 	}
 
 	void FixedUpdate(){
+		transform.position.Set(0, transform.position.y, 0);
 		if (useGravity) {
 			rigidbody.AddForce(rigidbody.mass * gravity * Vector3.down);		
 		}
