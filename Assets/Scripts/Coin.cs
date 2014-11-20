@@ -4,10 +4,11 @@ using System.Collections;
 public class Coin : MonoBehaviour {
 
 	// Use this for initialization
-	public GameObject scoreCounter;
 	public ParticleSystem fxPrebab;
+	public float rotationSpeed;
+	public int value;
 
-	void Start () 
+	void Start ()
 	{
 
 	}
@@ -15,14 +16,13 @@ public class Coin : MonoBehaviour {
 	// Update is called once per frame
 	void Update () 
 	{
-		
+		transform.Rotate (Vector3.forward, Time.deltaTime * rotationSpeed);
 	}
 
 	void OnTriggerEnter(Collider collider){
-		Score scoreScript = scoreCounter.GetComponent<Score>();
-
-		if (collider.gameObject == scoreScript.hero){
-			scoreScript.IncrementScore(1);
+		if (collider.gameObject.tag == "Hero"){
+			Hero HeroScript = (Hero)collider.gameObject.GetComponent<Hero>();
+			HeroScript.coin += value;
 
 			ParticleSystem fx = (ParticleSystem)Instantiate(fxPrebab, transform.position, Quaternion.identity);
 			Destroy(fx, 0.5F);

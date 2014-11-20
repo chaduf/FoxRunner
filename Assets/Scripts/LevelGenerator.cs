@@ -6,58 +6,81 @@ public class LevelGenerator : MonoBehaviour {
 
 	public enum STATE
 	{
-		STATIC,
-		TRANSITION
+		DISABLED,
+		TRANSITION,
+		SCROLLING,
+		STARTING
 	};
-
-
+	
 	public GameObject[] levelBlockPrefabs;
+	private ArrayList createdBlocks;
 	public GameObject startLevelBlock;
+	
 	public GameObject heroPrefab;
 	public GameObject hero;
+	public float startingDuration;
+	private float startingTime;
 
-	public STATE state = STATE.STATIC;
+	public STATE state = STATE.SCROLLING;
 	public LevelBlock.ORIENTATION startLevelBlockOrientation;
 
 	public GameObject[] possibleOrientation;
 	public int currentOrientation;
 	public float transitionSpeed;
-
-	public float levelBlockStep;
-	public Vector3 startPosition;
-	public float levelBlockSpeed;
+	public float leveBlockStep;
+	
+	public float startPosition;
+	public float endPosition;
+	public float scrollingSpeed;
 
 	private GameObject lastBlock = null;
+	private GameObject[] genLevelBlocks;
 
-	//Creates level block
-	private void CreateBlock(GameObject blockPrefab, LevelBlock.ORIENTATION orientation){
-		GameObject nextBlock = (GameObject)Instantiate (blockPrefab, startPosition, Quaternion.identity);
-		LevelBlock nextBlockScript = nextBlock.GetComponent<LevelBlock> ();
-		nextBlock.transform.parent = this.transform;
-		nextBlockScript.orientation = orientation;
-
-		if (lastBlock != null) {
-			LevelBlock lastBlockScript = lastBlock.GetComponent<LevelBlock> ();
-			float correction = (nextBlockScript.size+lastBlockScript.size)/2 + lastBlock.transform.position.z - nextBlock.transform.transform.position.z;
-			nextBlock.transform.Translate(0, 0, correction);
+	private void DestroyLevel(){
+		foreach (GameObject block in createdBlocks) {
+			Destroy(block);		
 		}
-
-		lastBlock = nextBlock;
-
+		createdBlocks.Clear ();
 	}
 
-	private void TransitionRequest (){
+	private void MoveBlocks (){
+		ArrayList blocksToRemoveIndex = new ArrayList();
 
+		foreach (GameObject block in createdBlocks) {
+			// fill the list of Level block to remove (with indexes)
+			if (block.transform.position.z < endPosition){
+				blocksToRemoveIndex.Add (createdBlocks.IndexOf(block));
+				continue;
+			}
+			
+			// Translates Level blocks
+			block.transform.Translate (new Vector3(0,0,-scrollingSpeed*Time.deltaTime));
+		}
+		
+		// Removes level blocks to remove
+		foreach (int i in blocksToRemoveIndex) {
+			Destroy((GameObject)createdBlocks[i]);
+			createdBlocks.RemoveAt(i);
+		}
 	}
 
-	private void SpawnHero(){
-
+	private void Scroll(){
+		if (startPosition - lastBlock.transform.position.z > leveBlockStep) {
+			int index = Random.Range (0, levelBlockPrefabs.Length);
+			LevelBlock.ORIENTATION orientation = (LevelBlock.ORIENTATION)Random.Range(0, 6);
+			CreateBlock(levelBlockPrefabs[index], orientation);	
+		}
+		MoveBlocks ();
 	}
 
-	// Use this for initialization
+	private void Scroll(GameObject LevelBlockPrefab, LevelBlock.ORIENTATION orientation){
+		if (startPosition - lastBlock.transform.position.z > leveBlockStep) {
+			CreateBlock(LevelBlockPrefab, orientation);
+		}
+		MoveBlocks ();
+	}
 
-	private void StaticUpdate() // Charles Henry le maniaque
-	{
+	private void GetTransitionRequest(){
 		if (Input.GetKeyDown(KeyCode.LeftArrow)){
 			hero.GetComponent<Hero>().ChangeRoad();
 			currentOrientation = (++currentOrientation)%6;
@@ -72,47 +95,108 @@ public class LevelGenerator : MonoBehaviour {
 		}
 	}
 
-	private void TransitionUpdate()
-	{
-		float difference;
+	//Creates level block
+	private void CreateBlock(GameObject blockPrefab, LevelBlock.ORIENTATION orientation, float z, bool adjust){
+		GameObject nextBlock = (GameObject)Instantiate (blockPrefab, z * Vector3.forward, Quaternion.identity);
+		LevelBlock nextBlockScript = nextBlock.GetComponent<LevelBlock> ();
 
+		nextBlock.transform.parent = transform;
+		nextBlockScript.orientation = orientation;
+
+		if (lastBlock != null && adjust) {
+			LevelBlock lastBlockScript = lastBlock.GetComponent<LevelBlock> ();
+			float correction = (nextBlockScript.size+lastBlockScript.size)/2 + lastBlock.transform.position.z - nextBlock.transform.transform.position.z;
+			nextBlock.transform.Translate(0, 0, correction);
+		}
+
+		createdBlocks.Add(nextBlock);
+		lastBlock = nextBlock;
+	}
+
+	private void CreateBlock(GameObject blockPrefab, LevelBlock.ORIENTATION orientation){
+		CreateBlock (blockPrefab, orientation, startPosition, true);
+	}
+
+	private void RotateLevel(){
+		float difference;
+		
 		difference = Vector3.Cross (transform.up, possibleOrientation [currentOrientation].transform.up).magnitude;
 		transform.rotation = Quaternion.Slerp(this.transform.rotation, 
 		                                      possibleOrientation[currentOrientation].transform.rotation, 
 		                                      Time.deltaTime * transitionSpeed/difference);
-
+		
 		difference = Vector3.Cross (transform.up, possibleOrientation [currentOrientation].transform.up).magnitude;
 		if (difference < Vector3.kEpsilon){
-			state = STATE.STATIC;
+			state = STATE.SCROLLING;
 		}
+	}
+
+	private void StartLevel(){
+		hero.transform.position = Vector3.zero;
+		hero.GetComponent<Hero>().Wait();
+		float step = ((LevelBlock)startLevelBlock.GetComponent<LevelBlock>()).size;
+		CreateBlock (startLevelBlock, startLevelBlockOrientation, startPosition, false);
+
+		for (float z=startPosition-step; z>endPosition; z-=step) {
+			CreateBlock(startLevelBlock, 0, z, false);
+		}
+
+		startingTime = 0;
+		state = STATE.STARTING;
+	}
+
+	private void RestartLevel(){
+		DestroyLevel ();
+		StartLevel ();
+
+	}
+
+	private void WaitStart (){
+		startingTime += Time.deltaTime;
+		if (startingTime > startingDuration) {
+			state = STATE.SCROLLING;
+			hero.GetComponent<Hero> ().startRunning();
+		}
+	}
+
+	private void StartingUpdate(){
+		Scroll ();
+		WaitStart ();
+	}
+
+	// makes the level turn
+	private void TransitionUpdate(){
+		RotateLevel();
+		Scroll ();
+	}
+
+	private void ScrollingUpdate(){
+		Scroll ();
+		GetTransitionRequest ();
 	}
 
 	void Start ()
 	{
-		CreateBlock (startLevelBlock, startLevelBlockOrientation);
-		LevelBlock.speed = levelBlockSpeed;
+		createdBlocks = new ArrayList ();
+		StartLevel ();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-
-		LevelBlock.speed = levelBlockSpeed;
-		
-		if (startPosition.z - lastBlock.transform.position.z > levelBlockStep) {
-			int index = Random.Range (0, levelBlockPrefabs.Length);
-			LevelBlock.ORIENTATION orientation = (LevelBlock.ORIENTATION)Random.Range(0, 6);
-			CreateBlock(levelBlockPrefabs[index], orientation);	
-		}
-
 		switch (state) 
 		{
-		case STATE.STATIC:
-			StaticUpdate();
+		
+		case STATE.SCROLLING:
+			ScrollingUpdate ();
 			break;
 
 		case STATE.TRANSITION:
 			TransitionUpdate();
 			break;
+		case STATE.STARTING:
+			StartingUpdate();
+			break;
 		}
 	}
 }
+

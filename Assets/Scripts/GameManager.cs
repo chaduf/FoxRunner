@@ -7,7 +7,9 @@ public class GameManager : MonoBehaviour {
 		LEVEL_SELECT,
 		GAME,
 		PAUSE,
-		LOAD
+		LOAD,
+		GAME_OVER,
+		WIN
 	}
 
 	//GUI management
