@@ -12,4 +12,7 @@ public class Platform : MonoBehaviour {
 	void Update () {
 	
 	}
+
+	void OnCollisionEnter(Collision collision){
+	}
 }

@@ -10,6 +10,7 @@ public class Hero : MonoBehaviour {
 
 	public enum STATE
 	{
+		DEAD,
 		RUNNING,
 		AERIAL,
 		STAND_BY
@@ -23,8 +24,11 @@ public class Hero : MonoBehaviour {
 	public float changeJumpPower;
 	public float gravity;
 	public bool useGravity;
+	public float maxDepth;
 
 	public int coin;
+	public int maxLife;
+	public int life;
 
 	private void Jump(float power){
 		transform.Translate (new Vector3 (0, 1E-1F, 0));
@@ -40,10 +44,6 @@ public class Hero : MonoBehaviour {
 		if (Input.GetKey(KeyCode.Space)){
 			Jump (jumpPower);
 		}
-
-		if (!rigidbody.detectCollisions) {
-			Fall ();
-		}
 	}
 
 	private void AerialUpdate(){
@@ -53,10 +53,15 @@ public class Hero : MonoBehaviour {
 			Destroy (landFx, 0.5F);
 			rigidbody.velocity = Vector3.zero;
 		}
+		Debug.Log("Dead test");
+		if (transform.position.z < -maxDepth){
+			Debug.Log("Dead");
+			Die ();
+		}
 	}
 
 	private void StandByUpdate(){
-
+		this.transform.position = Vector3.zero;
 	}
 
 	private void ChangingUpdate(){
@@ -76,12 +81,22 @@ public class Hero : MonoBehaviour {
 
 	public void Wait(){
 		state = STATE.STAND_BY;
+		transform.position = Vector3.zero;
+		useGravity = false;
 	}
 
+	public void Die(){
+		state = STATE.DEAD;
+		if (life > 0) {
+			life--;
+		}
+	} 
+
 	// Use this for initialization
-	void Start () {
+	public void Start () {
 		gameObject.tag = "Hero";
 		state = STATE.STAND_BY;
+		life = maxLife;
 	}
 
 	// Update is called once per frame
@@ -102,12 +117,24 @@ public class Hero : MonoBehaviour {
 		case STATE.RUNNING:
 			RunningUpdate();
 			break;
-			//case STATE.CHANGING:
-			//	ChangingUpdate();
-			//	break;
 		case STATE.AERIAL:
 			AerialUpdate();
 			break;
+		}
+	}
+
+	void OnCollisionEnter(Collision collision){
+		GameObject collider = collision.gameObject;
+		if (collider.tag == "Platform"){
+			RaycastHit hit;
+			if (!Physics.Raycast(transform.position, -transform.up, out hit) || !hit.collider.gameObject == collider){
+				Debug.Log("I die");
+				Die();
+			}
+			else if (state == STATE.AERIAL){
+				state = STATE.RUNNING;
+			}
+		
 		}
 	}
 }

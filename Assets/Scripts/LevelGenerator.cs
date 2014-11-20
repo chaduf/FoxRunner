@@ -15,6 +15,7 @@ public class LevelGenerator : MonoBehaviour {
 	public GameObject[] levelBlockPrefabs;
 	private ArrayList createdBlocks;
 	public GameObject startLevelBlock;
+	public GameObject camera;
 	
 	public GameObject heroPrefab;
 	public GameObject hero;
@@ -32,6 +33,8 @@ public class LevelGenerator : MonoBehaviour {
 	public float startPosition;
 	public float endPosition;
 	public float scrollingSpeed;
+
+	public Texture2D transitionScreen;
 
 	private GameObject lastBlock = null;
 	private GameObject[] genLevelBlocks;
@@ -81,12 +84,13 @@ public class LevelGenerator : MonoBehaviour {
 	}
 
 	private void GetTransitionRequest(){
-		if (Input.GetKeyDown(KeyCode.LeftArrow)){
+		Hero.STATE heroState = hero.GetComponent <Hero>().state;
+		if (Input.GetKey(KeyCode.LeftArrow) && heroState == Hero.STATE.RUNNING){
 			hero.GetComponent<Hero>().ChangeRoad();
 			currentOrientation = (++currentOrientation)%6;
 			state = STATE.TRANSITION;
 		}
-		if (Input.GetKeyDown(KeyCode.RightArrow)){
+		if (Input.GetKey(KeyCode.RightArrow) && heroState == Hero.STATE.RUNNING){
 			hero.GetComponent<Hero>().ChangeRoad();
 			currentOrientation = (--currentOrientation)%6;
 			if (currentOrientation < 0)
@@ -132,30 +136,67 @@ public class LevelGenerator : MonoBehaviour {
 	}
 
 	private void StartLevel(){
-		hero.transform.position = Vector3.zero;
-		hero.GetComponent<Hero>().Wait();
 		float step = ((LevelBlock)startLevelBlock.GetComponent<LevelBlock>()).size;
-		CreateBlock (startLevelBlock, startLevelBlockOrientation, startPosition, false);
+		CreateBlock (startLevelBlock, 
+		             startLevelBlockOrientation, 
+		             startPosition, false);
 
 		for (float z=startPosition-step; z>endPosition; z-=step) {
 			CreateBlock(startLevelBlock, 0, z, false);
 		}
 
-		startingTime = 0;
+		hero.GetComponent<Hero>().Wait();
+		Debug.Log (hero.transform.position);
 		state = STATE.STARTING;
+		startingTime = 0.0F;
 	}
 
 	private void RestartLevel(){
 		DestroyLevel ();
 		StartLevel ();
+	}
 
+	private void stopLevel (){
+		DestroyLevel ();
+		state = STATE.DISABLED;
 	}
 
 	private void WaitStart (){
 		startingTime += Time.deltaTime;
+
 		if (startingTime > startingDuration) {
+			Debug.Log("End start");
 			state = STATE.SCROLLING;
 			hero.GetComponent<Hero> ().startRunning();
+		}
+	}
+
+	public void DisableLevel(){
+		DestroyLevel ();
+		state = STATE.DISABLED;
+	}
+	
+	public void EnableLevel(){
+		if (hero){
+			Destroy(hero);
+		}
+		
+		hero = (GameObject)Instantiate (heroPrefab, 
+		                                Vector3.zero, 
+		                                Quaternion.identity);
+		
+		CameraManager camManager = camera.GetComponent<CameraManager>();
+		camManager.hero = hero;
+		StartLevel ();
+	}
+
+	private void checkHeroState(){
+		Hero heroScript = (Hero)hero.GetComponent<Hero> ();
+		switch (heroScript.state){
+			case Hero.STATE.DEAD:
+			if (heroScript)
+				RestartLevel();
+			break;
 		}
 	}
 
@@ -168,28 +209,40 @@ public class LevelGenerator : MonoBehaviour {
 	private void TransitionUpdate(){
 		RotateLevel();
 		Scroll ();
+		checkHeroState ();
 	}
 
 	private void ScrollingUpdate(){
 		Scroll ();
-		GetTransitionRequest ();
+		GetTransitionRequest();
+		checkHeroState ();
+	}
+
+	private void StartingOnGUI(){
+		Debug.Log ("Waiting GUI");
+		GUI.color = Color.Lerp (Color.black, 
+                                new Color(0, 0, 0, 0.0F), 
+                                startingTime/startingDuration);
+
+		GUI.DrawTexture (new Rect(0, 0, Screen.width, Screen.height), transitionScreen);
+
+		GUI.color = Color.white;
 	}
 
 	void Start ()
 	{
 		createdBlocks = new ArrayList ();
-		StartLevel ();
+		EnableLevel ();
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
+
 		switch (state) 
 		{
-		
 		case STATE.SCROLLING:
 			ScrollingUpdate ();
 			break;
-
 		case STATE.TRANSITION:
 			TransitionUpdate();
 			break;
@@ -198,5 +251,19 @@ public class LevelGenerator : MonoBehaviour {
 			break;
 		}
 	}
-}
 
+	void OnGUI(){
+		switch (state) 
+		{
+		case STATE.SCROLLING:
+			//ScrollingOnGUI ();
+			break;
+		case STATE.TRANSITION:
+			//TransitionOnGUI();
+			break;
+		case STATE.STARTING:
+			StartingOnGUI();
+			break;
+		}
+	}
+}
