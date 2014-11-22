@@ -40,7 +40,7 @@ public class Hero : MonoBehaviour {
 		transform.Translate (new Vector3 (0, 1E-1F, 0));
 		rigidbody.velocity += power*transform.up;
 		state = STATE.AERIAL;
-		this.animation.Play ("Jump");
+
 	} 
 
 	private void RunningUpdate(){
@@ -57,6 +57,7 @@ public class Hero : MonoBehaviour {
 	}
 
 	private void AerialUpdate(){
+		this.animation.Play ("Jump");
 		if (Physics.Raycast (transform.position, -transform.up, height/2)) {
 			state = STATE.RUNNING;
 			ParticleSystem landFx = (ParticleSystem)Instantiate(landFxPrefab, transform.position - (height - 1E-1F) * transform.up, Quaternion.identity);
@@ -111,7 +112,7 @@ public class Hero : MonoBehaviour {
 		life = maxLife;
 
 		animRunSpeed = 13.0f;
-		animJumpSpeed = 2.0f;
+		animJumpSpeed = 1.0f;
 		this.animation["Run"].speed = animRunSpeed;
 		this.animation["Jump"].speed = animJumpSpeed;
 
