@@ -6,6 +6,8 @@ using System.Collections.Generic;
 
 public class LevelGenerator : MonoBehaviour {
 
+	private static LevelGenerator instance;
+
 	public struct LEVEL{
 		public GameObject startBlockPrefab;
 		public GameObject[] blockPrefabs;
@@ -126,18 +128,14 @@ public class LevelGenerator : MonoBehaviour {
 	private void GetTransitionRequest(){
 		Hero.STATE heroState = hero.GetComponent <Hero>().state;
 		if (Input.GetKey(KeyCode.LeftArrow) && heroState == Hero.STATE.RUNNING){
-			hero.GetComponent<Hero>().ChangeRoad();
-			currentOrientation = (++currentOrientation)%6;
-			state = STATE.TRANSITION;
+			StartTransition(false);
 		}
 		if (Input.GetKey(KeyCode.RightArrow) && heroState == Hero.STATE.RUNNING){
-			hero.GetComponent<Hero>().ChangeRoad();
-			currentOrientation = (--currentOrientation)%6;
-			if (currentOrientation < 0)
-				currentOrientation += 6;
-			state = STATE.TRANSITION;
+			StartTransition(true);
 		}
 	}
+
+
 
 	//Creates level block
 	private void CreateBlock(GameObject blockPrefab, LevelBlock.ORIENTATION orientation, float z, bool adjust){
@@ -318,6 +316,7 @@ public class LevelGenerator : MonoBehaviour {
 
 	void Start ()
 	{
+		instance = this;
 		createdBlocks = new ArrayList ();
 
 	}
@@ -380,5 +379,25 @@ public class LevelGenerator : MonoBehaviour {
 		CameraManager camManager = camera.GetComponent<CameraManager>();
 		camManager.hero = hero;
 		StartLevel ();
+	}
+
+	public void StartTransition(bool right){
+		if (right){
+			hero.GetComponent<Hero> ().ChangeRoad ();
+			currentOrientation = (--currentOrientation) % 6;
+			if (currentOrientation < 0)
+				currentOrientation += 6;
+			state = STATE.TRANSITION;	
+		}
+		else {
+			hero.GetComponent<Hero>().ChangeRoad();
+			currentOrientation = (++currentOrientation)%6;
+			state = STATE.TRANSITION;
+		}
+	}
+
+	public static LevelGenerator GetInstance()
+	{
+		return instance;
 	}
 }
