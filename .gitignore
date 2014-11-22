@@ -1,2 +1,8 @@
 
 Assets/Prefabs/Block 3.prefab
+
+Assembly-CSharp-vs.csproj
+
+*.sln
+
+*.userprefs
