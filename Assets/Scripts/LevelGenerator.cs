@@ -54,8 +54,11 @@ public class LevelGenerator : MonoBehaviour {
 	private GameObject lastBlock = null;
 	private GameObject[] genLevelBlocks;
 
+	public int coinStep;
 	private int coinTarget;
-	private int coinStep;
+
+	public float speedChangePeriod;
+	private float lastSpeedChange;
 
 	//Utilities functions
 
@@ -68,7 +71,11 @@ public class LevelGenerator : MonoBehaviour {
 
 	private void ManageScrollingSpeed(){
 		Hero heroScript = hero.GetComponent<Hero> ();
-		scrollingSpeed = Mathf.Min (scrollingSpeed + level.scrollingSpeedInc, level.maxScrollingSpeed);
+
+		if (Time.time - lastSpeedChange > speedChangePeriod){
+			scrollingSpeed = Mathf.Min (scrollingSpeed + level.scrollingSpeedInc, level.maxScrollingSpeed);
+			lastSpeedChange = Time.time;
+		}
 
 		if (heroScript.coin > coinTarget){
 			int accelCoef = (coinTarget - heroScript.coin)/coinStep + 1;
@@ -184,6 +191,7 @@ public class LevelGenerator : MonoBehaviour {
 
 		coinTarget = coinStep;
 		scrollingSpeed = level.startScrollingSpeed;
+		lastSpeedChange = Time.time;
 	}
 
 	private void RestartLevel(){
