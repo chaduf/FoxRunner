@@ -311,6 +311,7 @@ public class LevelGenerator : MonoBehaviour {
 	void Start ()
 	{
 		createdBlocks = new ArrayList ();
+
 	}
 
 	// Update is called once per frame

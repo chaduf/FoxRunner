@@ -29,6 +29,10 @@ public class Hero : MonoBehaviour {
 	public int coin;
 	public int maxLife;
 	public int life;
+
+	// Vitesse des animations
+	public float animRunSpeed;
+	public float animJumpSpeed;
 	
 	private int platformContacts;
 
@@ -36,11 +40,19 @@ public class Hero : MonoBehaviour {
 		transform.Translate (new Vector3 (0, 1E-1F, 0));
 		rigidbody.velocity += power*transform.up;
 		state = STATE.AERIAL;
+		this.animation.Play ("Jump");
 	} 
 
 	private void RunningUpdate(){
+		if (animation.IsPlaying("Jump") == false)
+		{
+			
+			this.animation.Play ("Run");
+			
+		}
 		if (Input.GetKey(KeyCode.Space)){
 			Jump (jumpPower);
+
 		}
 	}
 
@@ -50,9 +62,11 @@ public class Hero : MonoBehaviour {
 			ParticleSystem landFx = (ParticleSystem)Instantiate(landFxPrefab, transform.position - (height - 1E-1F) * transform.up, Quaternion.identity);
 			Destroy (landFx, 0.5F);
 			rigidbody.velocity = Vector3.zero;
+
 		}
 
 		if (transform.position.y < -maxDepth){
+			Debug.Log ("died");
 			Die ();
 		}
 	}
@@ -95,6 +109,12 @@ public class Hero : MonoBehaviour {
 		gameObject.tag = "Hero";
 		state = STATE.STAND_BY;
 		life = maxLife;
+
+		animRunSpeed = 13.0f;
+		animJumpSpeed = 2.0f;
+		this.animation["Run"].speed = animRunSpeed;
+		this.animation["Jump"].speed = animJumpSpeed;
+
 	}
 
 	// Update is called once per frame

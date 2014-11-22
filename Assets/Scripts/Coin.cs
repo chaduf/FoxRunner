@@ -8,9 +8,10 @@ public class Coin : MonoBehaviour {
 	public float rotationSpeed;
 	public int value;
 
+
 	void Start ()
 	{
-
+		rotationSpeed = 300.0f;
 	}
 	
 	// Update is called once per frame
