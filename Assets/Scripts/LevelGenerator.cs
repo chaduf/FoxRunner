@@ -255,7 +255,7 @@ public class LevelGenerator : MonoBehaviour {
 
 		GUI.DrawTexture(coinTexturePos, coinTexture);
 
-		coinTextStyle.font = GameManager.getInstance ().mainFont;
+		coinTextStyle.font = GameManager.GetInstance ().mainFont;
 		coinTextStyle.alignment = TextAnchor.MiddleLeft;
 		coinTextStyle.normal.textColor = Color.white;
 		coinTextStyle.fontSize = 40;

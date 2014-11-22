@@ -134,7 +134,7 @@ public class GameManager : MonoBehaviour {
 	void Start () {
 		instance = this;
 		textStyle = new GUIStyle ();
-		textStyle.font = GameManager.getInstance ().mainFont;
+		textStyle.font = GameManager.GetInstance ().mainFont;
 		textStyle.alignment = TextAnchor.MiddleCenter;
 		textStyle.normal.textColor = Color.white;
 		textStyle.fontSize = 40;
@@ -146,7 +146,7 @@ public class GameManager : MonoBehaviour {
 	
 	}
 
-	public static GameManager getInstance(){
+	public static GameManager GetInstance(){
 		return instance;
 	}
 }
