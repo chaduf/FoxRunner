@@ -29,7 +29,7 @@ public class Hero : MonoBehaviour {
 	public int coin;
 	public int maxLife;
 	public int life;
-
+	
 	private int platformContacts;
 
 	private void Jump(float power){
@@ -71,7 +71,7 @@ public class Hero : MonoBehaviour {
 		}
 	}
 
-	public void startLevel(){
+	public void StartLevel(){
 		useGravity = true;
 		state = STATE.AERIAL;
 	}
@@ -84,6 +84,7 @@ public class Hero : MonoBehaviour {
 
 	public void Die(){
 		state = STATE.DEAD;
+		coin = 0;
 		if (life > 0) {
 			life--;
 		}

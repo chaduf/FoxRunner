@@ -2,7 +2,20 @@
 using System.Collections;
 using System.Collections.Generic;
 
+
+
 public class LevelGenerator : MonoBehaviour {
+
+	public struct LEVEL{
+		public GameObject startBlockPrefab;
+		public GameObject[] blockPrefabs;
+		public float startScrollingSpeed;
+		public float speedAcceleration;
+		public float minScrollingSpeed;
+		public float maxScrollingSpeed;
+		public float scrollingSpeedInc;
+		public float scrollingSpeedDec;
+	}
 
 	public enum STATE
 	{
@@ -11,10 +24,10 @@ public class LevelGenerator : MonoBehaviour {
 		SCROLLING,
 		STARTING
 	};
+
+	public LEVEL level;
 	
-	public GameObject[] levelBlockPrefabs;
 	private ArrayList createdBlocks;
-	public GameObject startLevelBlock;
 	public GameObject camera;
 	
 	public GameObject heroPrefab;
@@ -41,6 +54,11 @@ public class LevelGenerator : MonoBehaviour {
 	private GameObject lastBlock = null;
 	private GameObject[] genLevelBlocks;
 
+	private int coinTarget;
+	private int coinStep;
+
+	//Utilities functions
+
 	private void DestroyLevel(){
 		foreach (GameObject block in createdBlocks) {
 			Destroy(block);		
@@ -48,8 +66,21 @@ public class LevelGenerator : MonoBehaviour {
 		createdBlocks.Clear ();
 	}
 
+	private void ManageScrollingSpeed(){
+		Hero heroScript = hero.GetComponent<Hero> ();
+		scrollingSpeed = Mathf.Min (scrollingSpeed + level.scrollingSpeedInc, level.maxScrollingSpeed);
+
+		if (heroScript.coin > coinTarget){
+			int accelCoef = (coinTarget - heroScript.coin)/coinStep + 1;
+			scrollingSpeed = Mathf.Max (scrollingSpeed - (float)accelCoef * level.scrollingSpeedDec, level.minScrollingSpeed);
+			coinTarget += accelCoef * coinStep;
+		}
+	}
+
 	private void MoveBlocks (){
 		ArrayList blocksToRemoveIndex = new ArrayList();
+
+		ManageScrollingSpeed ();
 
 		foreach (GameObject block in createdBlocks) {
 			// fill the list of Level block to remove (with indexes)
@@ -71,9 +102,9 @@ public class LevelGenerator : MonoBehaviour {
 
 	private void Scroll(){
 		if (startPosition - lastBlock.transform.position.z > leveBlockStep) {
-			int index = Random.Range (0, levelBlockPrefabs.Length);
+			int index = Random.Range (0, level.blockPrefabs.Length);
 			LevelBlock.ORIENTATION orientation = (LevelBlock.ORIENTATION)Random.Range(0, 6);
-			CreateBlock(levelBlockPrefabs[index], orientation);
+			CreateBlock(level.blockPrefabs[index], orientation);
 		}
 		MoveBlocks ();
 	}
@@ -138,19 +169,21 @@ public class LevelGenerator : MonoBehaviour {
 	}
 
 	private void StartLevel(){
-		float step = ((LevelBlock)startLevelBlock.GetComponent<LevelBlock>()).size;
-		CreateBlock (startLevelBlock, 
+		float step = ((LevelBlock)level.startBlockPrefab.GetComponent<LevelBlock>()).size;
+		CreateBlock (level.startBlockPrefab, 
 		             startLevelBlockOrientation, 
 		             endPosition, false);
 
 		for (float z=endPosition + step; z>startPosition; z+=step) {
-			CreateBlock(startLevelBlock, startLevelBlockOrientation, z, false);
+			CreateBlock(level.startBlockPrefab, startLevelBlockOrientation, z, false);
 		}
 
 		hero.GetComponent<Hero>().Wait();
-//		Debug.Log (hero.transform.position);
 		state = STATE.STARTING;
 		startingTime = 0.0F;
+
+		coinTarget = coinStep;
+		scrollingSpeed = level.startScrollingSpeed;
 	}
 
 	private void RestartLevel(){
@@ -158,7 +191,7 @@ public class LevelGenerator : MonoBehaviour {
 		StartLevel ();
 	}
 
-	private void stopLevel (){
+	private void StopLevel (){
 		DestroyLevel ();
 		state = STATE.DISABLED;
 	}
@@ -168,27 +201,8 @@ public class LevelGenerator : MonoBehaviour {
 
 		if (startingTime > startingDuration) {
 			state = STATE.SCROLLING;
-			hero.GetComponent<Hero> ().startLevel();
+			hero.GetComponent<Hero> ().StartLevel();
 		}
-	}
-
-	public void DisableLevel(){
-		DestroyLevel ();
-		state = STATE.DISABLED;
-	}
-	
-	public void EnableLevel(){
-		if (hero){
-			Destroy(hero);
-		}
-		
-		hero = (GameObject)Instantiate (heroPrefab, 
-		                                Vector3.zero, 
-		                                Quaternion.identity);
-		
-		CameraManager camManager = camera.GetComponent<CameraManager>();
-		camManager.hero = hero;
-		StartLevel ();
 	}
 
 	private void checkHeroState(){
@@ -247,8 +261,11 @@ public class LevelGenerator : MonoBehaviour {
 		GUI.Label (coinTextPos, coinText, coinTextStyle);
 	}
 
+
+	// Runtime functions
+
 	private void StartingUpdate(){
-		Scroll (startLevelBlock, startLevelBlockOrientation);
+		Scroll (level.startBlockPrefab, startLevelBlockOrientation);
 		WaitStart ();
 	}
 
@@ -291,7 +308,6 @@ public class LevelGenerator : MonoBehaviour {
 		DisplayCoin ();
 	}
 
-
 	void Start ()
 	{
 		createdBlocks = new ArrayList ();
@@ -330,5 +346,30 @@ public class LevelGenerator : MonoBehaviour {
 			StartingOnGUI();
 			break;
 		}
+	}
+
+	//Public functions
+
+	public void loadLevel(LEVEL newlevel){
+		level = newlevel;
+	}
+	
+	public void DisableLevel(){
+		DestroyLevel ();
+		state = STATE.DISABLED;
+	}
+	
+	public void EnableLevel(){
+		if (hero){
+			Destroy(hero);
+		}
+		
+		hero = (GameObject)Instantiate (heroPrefab, 
+		                                Vector3.zero, 
+		                                Quaternion.identity);
+		
+		CameraManager camManager = camera.GetComponent<CameraManager>();
+		camManager.hero = hero;
+		StartLevel ();
 	}
 }
