@@ -6,3 +6,19 @@ Assembly-CSharp-vs.csproj
 *.sln
 
 *.userprefs
+
+Assets/SceneConstBlock.unity
+
+Library/assetDatabase3
+
+Library/CurrentLayout.dwlt
+
+Library/expandedItems
+
+Library/InspectorExpandedItems.asset
+
+Library/metadata/29/2938d38d52d53412f97e71de62e0b224
+
+FoxRunner-csharp.sln
+
+FoxRunner.sln
