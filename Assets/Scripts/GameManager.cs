@@ -45,22 +45,65 @@ public class GameManager : MonoBehaviour {
 	}
 
 	private void DisplayStartButton (){
-		GUIContent startButtonContent = new GUIContent("START");
+		GUIContent startButtonContent = new GUIContent("Start");
 		float minWidth;
 		float maxWidth;
 		float startButtonHeight;
 		textStyle.CalcMinMaxWidth(startButtonContent, out minWidth, out maxWidth);
 		startButtonHeight = textStyle.CalcHeight (startButtonContent, maxWidth);
-		Rect startButtonRect = new Rect (0.5F * Screen.width, 0.5F * Screen.height, maxWidth, startButtonHeight);
+		Rect startButtonRect = new Rect (0.4F * Screen.width, 0.6F * Screen.height, maxWidth, startButtonHeight);
 		if (GUI.Button(startButtonRect, startButtonContent, textStyle)){
 			LoadLevel (0);
 			state = STATE.LOADING;
 		}
 	}
 
+	private void DisplayLvSelectButton(){
+		GUIContent lvSelectButtonContent = new GUIContent("Select level");
+		float minWidth;
+		float maxWidth;
+		float lvSelectButtonHeight;
+		textStyle.CalcMinMaxWidth(lvSelectButtonContent, out minWidth, out maxWidth);
+		lvSelectButtonHeight = textStyle.CalcHeight (lvSelectButtonContent, maxWidth);
+		Rect startButtonRect = new Rect (0.4F * Screen.width, 0.7F * Screen.height, maxWidth, lvSelectButtonHeight);
+		if (GUI.Button (startButtonRect, lvSelectButtonContent, textStyle)) {
+			state = STATE.LEVEL_SELECT;
+		}
+	}
+
+	public void DisplayQuitButton(){
+		GUIContent quitButtonContent = new GUIContent("Quit");
+		float minWidth;
+		float maxWidth;
+		float quitButtonHeight;
+		textStyle.CalcMinMaxWidth(quitButtonContent, out minWidth, out maxWidth);
+		quitButtonHeight = textStyle.CalcHeight (quitButtonContent, maxWidth);
+		Rect startButtonRect = new Rect (0.4F * Screen.width, 0.8F * Screen.height, maxWidth, quitButtonHeight);
+		if (GUI.Button (startButtonRect, quitButtonContent, textStyle)) {
+			state = STATE.LEVEL_SELECT;
+		}
+	}
+
 	private void MenuOnGui(){
 		DisplayTitle ();
 		DisplayStartButton ();
+		DisplayLvSelectButton ();
+		DisplayQuitButton ();
+	}
+
+	private void LevelSelectOnGUI(){
+		Vector2 scrollPosition = Vector2.zero;
+		Rect container = new Rect (0.05F * Screen.width, 0.05F * Screen.height, 0.9F * Screen.width, 0.9F * Screen.height);
+		Rect viewRect;
+		float height=0;
+		float width;
+		float altHeight;
+		for (int i=0; i<levels.Length; i++) {
+			GUIContent quitButtonContent = new GUIContent("Quit");		
+		}
+		//scrollPosition = GUI.BeginScrollView (container, scrollPosition, viewRect);
+
+		GUI.EndScrollView();
 	}
 	
 	//GUI management
