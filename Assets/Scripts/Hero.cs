@@ -30,6 +30,8 @@ public class Hero : MonoBehaviour {
 	public int maxLife;
 	public int life;
 
+	// Mode Gosht
+
 	// Vitesse des animations
 	public float animRunSpeed;
 	public float animJumpSpeed;
