@@ -215,8 +215,13 @@ public class LevelGenerator : MonoBehaviour {
 		Hero heroScript = (Hero)hero.GetComponent<Hero> ();
 		switch (heroScript.state){
 			case Hero.STATE.DEAD:
-				if (state == STATE.SCROLLING)
-					RestartLevel();
+			if (heroScript.life < 1){
+				DisableLevel();
+				GameManager.GetInstance().state = GameManager.STATE.GAME_OVER;
+				return;
+			}
+			if (state == STATE.SCROLLING)
+				RestartLevel();
 				break;
 		}
 	}
@@ -267,7 +272,6 @@ public class LevelGenerator : MonoBehaviour {
 		GUI.Label (coinTextPos, coinText, coinTextStyle);
 	}
 
-
 	// Runtime functions
 
 	private void StartingUpdate(){
@@ -289,9 +293,7 @@ public class LevelGenerator : MonoBehaviour {
 	}
 
 	private void DisabledUpdate(){
-		if (Input.GetKeyDown (KeyCode.Space)) {
-			EnableLevel();		
-		}
+
 	}
 
 	private void StartingOnGUI(){
@@ -364,6 +366,7 @@ public class LevelGenerator : MonoBehaviour {
 	
 	public void DisableLevel(){
 		DestroyLevel ();
+		Destroy (hero);
 		state = STATE.DISABLED;
 	}
 	

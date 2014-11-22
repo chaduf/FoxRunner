@@ -8,8 +8,7 @@ public class GameManager : MonoBehaviour {
 		GAME,
 		PAUSE,
 		LOADING,
-		GAME_OVER,
-		WIN
+		GAME_OVER
 	}
 
 	private static GameManager instance;
@@ -42,6 +41,15 @@ public class GameManager : MonoBehaviour {
 		                           0.1F*Screen.height + 0.02F*Screen.height * Mathf.Cos(1.0F * 2.0F * Mathf.PI * Time.time), 
 		                           0.8F*Screen.width, 0.8F*Screen.width / titleRatio);
 		GUI.DrawTexture (titleRect, titleTexture);
+	}
+
+	private void DisplayGameOver(){
+		float padding = Screen.width / 50.0F;
+		float gameOverRatio = gameOverTexture.width / gameOverTexture.height;
+		Rect gameOverRect = new Rect (0.1F*Screen.width + 0.1F*Screen.width * Mathf.Sin(0.25F * 2.0F * Mathf.PI * Time.time), 
+		                              0.2F*Screen.height + 0.2F*Screen.height * Mathf.Cos(0.25F * 2.0F * Mathf.PI * Time.time), 
+		                              0.8F*Screen.width, 0.8F*Screen.width / gameOverRatio);
+		GUI.DrawTexture (gameOverRect, gameOverTexture);
 	}
 
 	private bool DisplayButton(string text, float left, float top){
@@ -116,7 +124,12 @@ public class GameManager : MonoBehaviour {
 		DisplayLevelSelect ();
 		DispQuitRetButtons ();
 	}
-	
+
+	private void GameOverOnGui(){
+		DisplayGameOver ();
+		DispQuitRetButtons ();
+	}
+
 	//GUI management
 	void OnGUI(){
 		switch (state) {
@@ -126,6 +139,11 @@ public class GameManager : MonoBehaviour {
 		
 		case STATE.LEVEL_SELECT:
 			LevelSelectOnGUI();
+			break;
+		
+
+		case STATE.GAME_OVER:
+			GameOverOnGui();
 			break;
 		}
 	}

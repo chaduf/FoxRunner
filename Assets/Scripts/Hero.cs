@@ -46,15 +46,13 @@ public class Hero : MonoBehaviour {
 	} 
 
 	private void RunningUpdate(){
-		if (animation.IsPlaying("Jump") == false)
-		{
-			
 			this.animation.Play ("Run");
-			
-		}
 		if (Input.GetKey(KeyCode.Space)){
 			Jump (jumpPower);
+		}
 
+		if (transform.position.y < -maxDepth){
+			Die ();
 		}
 	}
 
@@ -69,7 +67,6 @@ public class Hero : MonoBehaviour {
 		}
 
 		if (transform.position.y < -maxDepth){
-			Debug.Log ("died");
 			Die ();
 		}
 	}
