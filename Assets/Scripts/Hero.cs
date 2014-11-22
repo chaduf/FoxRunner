@@ -43,15 +43,10 @@ public class Hero : MonoBehaviour {
 		rigidbody.velocity += power*transform.up;
 		state = STATE.AERIAL;
 
-	} 
+	}
 
 	private void RunningUpdate(){
-		if (animation.IsPlaying("Jump") == false)
-		{
-			
-			this.animation.Play ("Run");
-			
-		}
+		//animation.Play ("Run");
 		if (Input.GetKey(KeyCode.Space)){
 			Jump (jumpPower);
 
@@ -59,11 +54,12 @@ public class Hero : MonoBehaviour {
 	}
 
 	private void AerialUpdate(){
-		this.animation.Play ("Jump");
+		//this.animation.Play ("Jump");
 		if (Physics.Raycast (transform.position, -transform.up, height/2)) {
+			Debug.Log("land");
 			state = STATE.RUNNING;
 			ParticleSystem landFx = (ParticleSystem)Instantiate(landFxPrefab, transform.position - (height - 1E-1F) * transform.up, Quaternion.identity);
-			Destroy (landFx, 0.5F);
+			Destroy (landFx);
 			rigidbody.velocity = Vector3.zero;
 
 		}
@@ -115,8 +111,8 @@ public class Hero : MonoBehaviour {
 
 		animRunSpeed = 13.0f;
 		animJumpSpeed = 1.0f;
-		this.animation["Run"].speed = animRunSpeed;
-		this.animation["Jump"].speed = animJumpSpeed;
+		//this.animation["Run"].speed = animRunSpeed;
+		//this.animation["Jump"].speed = animJumpSpeed;
 
 	}
 
@@ -160,7 +156,6 @@ public class Hero : MonoBehaviour {
 			platformContacts--;
 			if (platformContacts == 0){
 				state = STATE.AERIAL;
-				Debug.Log ("I leave");
 			}
 		}
 	}

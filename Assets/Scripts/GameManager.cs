@@ -44,44 +44,65 @@ public class GameManager : MonoBehaviour {
 		GUI.DrawTexture (titleRect, titleTexture);
 	}
 
-	private void DisplayStartButton (){
-		GUIContent startButtonContent = new GUIContent("Start");
+	private bool DisplayButton(string text, float left, float top){
+		GUIContent content = new GUIContent(text);
 		float minWidth;
 		float maxWidth;
-		float startButtonHeight;
-		textStyle.CalcMinMaxWidth(startButtonContent, out minWidth, out maxWidth);
-		startButtonHeight = textStyle.CalcHeight (startButtonContent, maxWidth);
-		Rect startButtonRect = new Rect (0.4F * Screen.width, 0.6F * Screen.height, maxWidth, startButtonHeight);
-		if (GUI.Button(startButtonRect, startButtonContent, textStyle)){
+		float buttonHeight;
+		textStyle.CalcMinMaxWidth(content, out minWidth, out maxWidth);
+		buttonHeight = textStyle.CalcHeight (content, maxWidth);
+		Rect buttonRect = new Rect (left* Screen.width, top * Screen.height, maxWidth, buttonHeight);
+
+		return GUI.Button (buttonRect, content, textStyle);
+	}
+
+	private void DisplayStartButton (){
+		if (DisplayButton("Start", 0.4F, 0.6F)){
 			LoadLevel (0);
 			state = STATE.LOADING;
 		}
 	}
 
 	private void DisplayLvSelectButton(){
-		GUIContent lvSelectButtonContent = new GUIContent("Select level");
-		float minWidth;
-		float maxWidth;
-		float lvSelectButtonHeight;
-		textStyle.CalcMinMaxWidth(lvSelectButtonContent, out minWidth, out maxWidth);
-		lvSelectButtonHeight = textStyle.CalcHeight (lvSelectButtonContent, maxWidth);
-		Rect startButtonRect = new Rect (0.4F * Screen.width, 0.7F * Screen.height, maxWidth, lvSelectButtonHeight);
-		if (GUI.Button (startButtonRect, lvSelectButtonContent, textStyle)) {
+		if (DisplayButton("Select level", 0.4F, 0.7F)){
 			state = STATE.LEVEL_SELECT;
 		}
 	}
 
 	public void DisplayQuitButton(){
-		GUIContent quitButtonContent = new GUIContent("Quit");
-		float minWidth;
-		float maxWidth;
-		float quitButtonHeight;
-		textStyle.CalcMinMaxWidth(quitButtonContent, out minWidth, out maxWidth);
-		quitButtonHeight = textStyle.CalcHeight (quitButtonContent, maxWidth);
-		Rect startButtonRect = new Rect (0.4F * Screen.width, 0.8F * Screen.height, maxWidth, quitButtonHeight);
-		if (GUI.Button (startButtonRect, quitButtonContent, textStyle)) {
-			state = STATE.LEVEL_SELECT;
+		if (DisplayButton("Quit", 0.4F, 0.8F)){
+			Application.Quit();
 		}
+	}
+
+	private void DispQuitRetButtons(){
+		if (DisplayButton("Return", 0.2F, 0.8F)){
+			state = STATE.MENU;
+		}
+		
+		if (DisplayButton("Quit", 0.2F, 0.9F)){
+			Application.Quit();
+		}
+	}
+
+	private void DisplayLevelSelect(){
+		Vector2 scrollPosition = Vector2.zero;
+		float interspace = 50.0F;
+		Rect container = new Rect (0.1F * Screen.width, 0.1F * Screen.height, 0.9F * Screen.width, 0.7F * Screen.height);
+		Rect viewRect = new Rect(0,0, 0.9F*Screen.width, levels.Length*interspace);
+		
+		for (int i=0; i<levels.Length; i++) {
+			GUIContent quitButtonContent = new GUIContent("Quit");
+		}
+		scrollPosition = GUI.BeginScrollView (container, scrollPosition, viewRect);
+		for (int i=0; i<levels.Length; i++) {
+			Rect levelButtonRect = new Rect(0, i*interspace, viewRect.width, interspace);
+			GUIContent levelButtonContent = new GUIContent("Level " + (i+1));
+			if (GUI.Button (levelButtonRect, levelButtonContent, textStyle)) {
+				LoadLevel(i);
+			}
+		}
+		GUI.EndScrollView();
 	}
 
 	private void MenuOnGui(){
@@ -91,19 +112,9 @@ public class GameManager : MonoBehaviour {
 		DisplayQuitButton ();
 	}
 
-	private void LevelSelectOnGUI(){
-		Vector2 scrollPosition = Vector2.zero;
-		Rect container = new Rect (0.05F * Screen.width, 0.05F * Screen.height, 0.9F * Screen.width, 0.9F * Screen.height);
-		Rect viewRect;
-		float height=0;
-		float width;
-		float altHeight;
-		for (int i=0; i<levels.Length; i++) {
-			GUIContent quitButtonContent = new GUIContent("Quit");		
-		}
-		//scrollPosition = GUI.BeginScrollView (container, scrollPosition, viewRect);
-
-		GUI.EndScrollView();
+	private void LevelSelectOnGUI () {
+		DisplayLevelSelect ();
+		DispQuitRetButtons ();
 	}
 	
 	//GUI management
@@ -111,6 +122,10 @@ public class GameManager : MonoBehaviour {
 		switch (state) {
 		case STATE.MENU:
 			MenuOnGui();
+			break;
+		
+		case STATE.LEVEL_SELECT:
+			LevelSelectOnGUI();
 			break;
 		}
 	}
