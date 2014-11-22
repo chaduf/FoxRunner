@@ -23,6 +23,7 @@ public class Barriere : MonoBehaviour {
 		if (col.gameObject.tag == "Hero") 
 		{
 			Hero heroScript = col.gameObject.GetComponent<Hero>();
+			Debug.Log("collision");
 			heroScript.Die();
 		}
 	}
