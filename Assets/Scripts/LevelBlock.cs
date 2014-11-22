@@ -29,6 +29,7 @@ public class LevelBlock : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		size = 30.0f;
 	}
 	
 	// Update is called once per frame

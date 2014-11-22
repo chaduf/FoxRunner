@@ -110,6 +110,7 @@ public class LevelGenerator : MonoBehaviour {
 	}
 
 	private void Scroll(){
+
 		if (startPosition - lastBlock.transform.position.z > leveBlockStep) {
 			int index = Random.Range (0, level.blockPrefabs.Length);
 			LevelBlock.ORIENTATION orientation = (LevelBlock.ORIENTATION)Random.Range(0, 6);
@@ -119,6 +120,7 @@ public class LevelGenerator : MonoBehaviour {
 	}
 
 	private void Scroll(GameObject LevelBlockPrefab, LevelBlock.ORIENTATION orientation){
+	
 		if (startPosition - lastBlock.transform.position.z > leveBlockStep) {
 			CreateBlock(LevelBlockPrefab, orientation);
 		}
@@ -271,6 +273,7 @@ public class LevelGenerator : MonoBehaviour {
 	// Runtime functions
 
 	private void StartingUpdate(){
+		Debug.Log ("Start");
 		Scroll (level.startBlockPrefab, startLevelBlockOrientation);
 		WaitStart ();
 	}
@@ -283,6 +286,7 @@ public class LevelGenerator : MonoBehaviour {
 	}
 
 	private void ScrollingUpdate(){
+		Debug.Log ("Scroll");
 		Scroll ();
 		GetTransitionRequest();
 		checkHeroState ();
