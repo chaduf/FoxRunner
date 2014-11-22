@@ -30,15 +30,13 @@ public class Hero : MonoBehaviour {
 	public int maxLife;
 	public int life;
 
+	private int platformContacts;
+
 	private void Jump(float power){
 		transform.Translate (new Vector3 (0, 1E-1F, 0));
 		rigidbody.velocity += power*transform.up;
 		state = STATE.AERIAL;
 	} 
-
-	private void Fall(){
-		state = STATE.AERIAL;
-	}
 
 	private void RunningUpdate(){
 		if (Input.GetKey(KeyCode.Space)){
@@ -53,9 +51,8 @@ public class Hero : MonoBehaviour {
 			Destroy (landFx, 0.5F);
 			rigidbody.velocity = Vector3.zero;
 		}
-		Debug.Log("Dead test");
-		if (transform.position.z < -maxDepth){
-			Debug.Log("Dead");
+
+		if (transform.position.y < -maxDepth){
 			Die ();
 		}
 	}
@@ -74,9 +71,9 @@ public class Hero : MonoBehaviour {
 		}
 	}
 
-	public void startRunning(){
+	public void startLevel(){
 		useGravity = true;
-		Fall();
+		state = STATE.AERIAL;
 	}
 
 	public void Wait(){
@@ -101,7 +98,7 @@ public class Hero : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
-
+//		Debug.Log (platformContacts);
 	}
 
 	void FixedUpdate(){
@@ -126,15 +123,27 @@ public class Hero : MonoBehaviour {
 	void OnCollisionEnter(Collision collision){
 		GameObject collider = collision.gameObject;
 		if (collider.tag == "Platform"){
-			RaycastHit hit;
-			if (!Physics.Raycast(transform.position, -transform.up, out hit) || !hit.collider.gameObject == collider){
-				Debug.Log("I die");
-				Die();
-			}
-			else if (state == STATE.AERIAL){
+			platformContacts++;
+			if (state == STATE.AERIAL){
 				state = STATE.RUNNING;
 			}
-		
+		}
+	}
+
+	void OnCollisionExit(Collision collision) {
+		GameObject collider = collision.collider.gameObject;
+		if (collider.tag == "Platform"){
+			platformContacts--;
+			if (platformContacts == 0){
+				state = STATE.AERIAL;
+				Debug.Log ("I leave");
+			}
+		}
+	}
+
+	void OnTriggerEnter(Collider collider){
+		if (collider.gameObject.tag == "PlatformEdge"){
+			Die ();
 		}
 	}
 }

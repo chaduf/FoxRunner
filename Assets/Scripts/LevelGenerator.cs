@@ -35,6 +35,8 @@ public class LevelGenerator : MonoBehaviour {
 	public float scrollingSpeed;
 
 	public Texture2D transitionScreen;
+	public Texture2D coinTexture;
+	public Texture2D lifeTexture;
 
 	private GameObject lastBlock = null;
 	private GameObject[] genLevelBlocks;
@@ -71,7 +73,7 @@ public class LevelGenerator : MonoBehaviour {
 		if (startPosition - lastBlock.transform.position.z > leveBlockStep) {
 			int index = Random.Range (0, levelBlockPrefabs.Length);
 			LevelBlock.ORIENTATION orientation = (LevelBlock.ORIENTATION)Random.Range(0, 6);
-			CreateBlock(levelBlockPrefabs[index], orientation);	
+			CreateBlock(levelBlockPrefabs[index], orientation);
 		}
 		MoveBlocks ();
 	}
@@ -139,14 +141,14 @@ public class LevelGenerator : MonoBehaviour {
 		float step = ((LevelBlock)startLevelBlock.GetComponent<LevelBlock>()).size;
 		CreateBlock (startLevelBlock, 
 		             startLevelBlockOrientation, 
-		             startPosition, false);
+		             endPosition, false);
 
-		for (float z=startPosition-step; z>endPosition; z-=step) {
-			CreateBlock(startLevelBlock, 0, z, false);
+		for (float z=endPosition + step; z>startPosition; z+=step) {
+			CreateBlock(startLevelBlock, startLevelBlockOrientation, z, false);
 		}
 
 		hero.GetComponent<Hero>().Wait();
-		Debug.Log (hero.transform.position);
+//		Debug.Log (hero.transform.position);
 		state = STATE.STARTING;
 		startingTime = 0.0F;
 	}
@@ -165,9 +167,8 @@ public class LevelGenerator : MonoBehaviour {
 		startingTime += Time.deltaTime;
 
 		if (startingTime > startingDuration) {
-			Debug.Log("End start");
 			state = STATE.SCROLLING;
-			hero.GetComponent<Hero> ().startRunning();
+			hero.GetComponent<Hero> ().startLevel();
 		}
 	}
 
@@ -194,14 +195,60 @@ public class LevelGenerator : MonoBehaviour {
 		Hero heroScript = (Hero)hero.GetComponent<Hero> ();
 		switch (heroScript.state){
 			case Hero.STATE.DEAD:
-			if (heroScript)
-				RestartLevel();
-			break;
+				if (state == STATE.SCROLLING)
+					RestartLevel();
+				break;
 		}
 	}
 
+	private void DisplayLife(){
+		Hero heroScript = hero.GetComponent <Hero>();
+		float screenFraction = Screen.width/10;
+		float padding = Screen.width / 50;
+		float line = 0.0F;
+		float col = 0.0F;
+		for (int life = 0; life < heroScript.life; life+=1){
+			Rect lifeTexturePos = new Rect(col * screenFraction + padding, line * screenFraction + padding,
+			                               screenFraction, screenFraction);
+			GUI.DrawTexture(lifeTexturePos, lifeTexture);
+
+			if (col * screenFraction > Screen.width/2.0F - padding){
+				col = 0.0F;
+				line += 1.0F;
+			}
+			else {
+				col += 1.0F;
+			}
+		}
+	}
+
+	private void DisplayCoin(){
+		float screenFraction = Screen.width/10;
+		float padding = Screen.width / 50;
+		string coinText = hero.GetComponent <Hero> ().coin.ToString ();
+		Rect coinTexturePos = new Rect (Screen.width - screenFraction - padding, padding, screenFraction, screenFraction);
+		Rect coinTextPos;
+		GUIStyle coinTextStyle = new GUIStyle ();
+		GUIContent content;
+		float minWidth;
+		float maxWidth;
+
+		GUI.DrawTexture(coinTexturePos, coinTexture);
+
+		coinTextStyle.font = GameManager.getInstance ().mainFont;
+		coinTextStyle.alignment = TextAnchor.MiddleLeft;
+		coinTextStyle.normal.textColor = Color.white;
+		coinTextStyle.fontSize = 40;
+
+		content = new GUIContent (coinText);
+		coinTextStyle.CalcMinMaxWidth (content, out minWidth, out maxWidth);
+		coinTextPos = new Rect (Screen.width - screenFraction - maxWidth - padding, 
+		                        padding, screenFraction * 2.0F, screenFraction);
+		GUI.Label (coinTextPos, coinText, coinTextStyle);
+	}
+
 	private void StartingUpdate(){
-		Scroll ();
+		Scroll (startLevelBlock, startLevelBlockOrientation);
 		WaitStart ();
 	}
 
@@ -218,8 +265,13 @@ public class LevelGenerator : MonoBehaviour {
 		checkHeroState ();
 	}
 
+	private void DisabledUpdate(){
+		if (Input.GetKeyDown (KeyCode.Space)) {
+			EnableLevel();		
+		}
+	}
+
 	private void StartingOnGUI(){
-		Debug.Log ("Waiting GUI");
 		GUI.color = Color.Lerp (Color.black, 
                                 new Color(0, 0, 0, 0.0F), 
                                 startingTime/startingDuration);
@@ -229,10 +281,20 @@ public class LevelGenerator : MonoBehaviour {
 		GUI.color = Color.white;
 	}
 
+	private void ScrollingOnGUI (){
+		DisplayLife();
+		DisplayCoin ();
+	}
+
+	private void TransitionOnGUI (){
+		DisplayLife();
+		DisplayCoin ();
+	}
+
+
 	void Start ()
 	{
 		createdBlocks = new ArrayList ();
-		EnableLevel ();
 	}
 
 	// Update is called once per frame
@@ -249,6 +311,9 @@ public class LevelGenerator : MonoBehaviour {
 		case STATE.STARTING:
 			StartingUpdate();
 			break;
+		case STATE.DISABLED:
+			DisabledUpdate();
+			break;
 		}
 	}
 
@@ -256,10 +321,10 @@ public class LevelGenerator : MonoBehaviour {
 		switch (state) 
 		{
 		case STATE.SCROLLING:
-			//ScrollingOnGUI ();
+			ScrollingOnGUI ();
 			break;
 		case STATE.TRANSITION:
-			//TransitionOnGUI();
+			TransitionOnGUI();
 			break;
 		case STATE.STARTING:
 			StartingOnGUI();
