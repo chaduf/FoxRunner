@@ -59,6 +59,7 @@
      <Compile Include="Assets\Scripts\Modifier.cs" />
      <Compile Include="Assets\Scripts\Obstacle.cs" />
      <Compile Include="Assets\Scripts\Platform.cs" />
+     <Compile Include="Assets\Scripts\PlatformRL.cs" />
      <Compile Include="Assets\Scripts\Respaw.cs" />
      <Compile Include="Assets\Scripts\Rotator.cs" />
      <Compile Include="Assets\Scripts\Score.cs" />
