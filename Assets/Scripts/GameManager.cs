@@ -11,7 +11,6 @@ public class GameManager : MonoBehaviour {
 	}
 
 	private static GameManager instance;
-	private AudioSource ylvis;
 
 	public STATE state = STATE.MENU;
 
@@ -141,7 +140,6 @@ public class GameManager : MonoBehaviour {
 		DisplayGameOver ();
 		DispQuitRetButtons ();
 		DisplayScore ();
-		ylvis.Stop();
 	}
 
 	//GUI management
@@ -170,8 +168,7 @@ public class GameManager : MonoBehaviour {
 		textStyle.alignment = TextAnchor.MiddleCenter;
 		textStyle.normal.textColor = Color.white;
 		textStyle.fontSize = 40;
-		ylvis = this.audio;
-		ylvis.Play ();
+		this.audio.Play ();
 
 	}
 	

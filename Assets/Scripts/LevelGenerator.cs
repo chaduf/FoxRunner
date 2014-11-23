@@ -52,6 +52,8 @@ public class LevelGenerator : MonoBehaviour {
 	public Texture2D transitionScreen;
 	public Texture2D coinTexture;
 	public Texture2D lifeTexture;
+	public Texture2D rightTexture;
+	public Texture2D leftTexture;
 
 	private GameObject lastBlock = null;
 	private GameObject[] genLevelBlocks;
@@ -90,10 +92,6 @@ public class LevelGenerator : MonoBehaviour {
 			int accelCoef = (coinTarget - heroScript.coin)/coinStep + 1;
 			scrollingSpeed = Mathf.Max (scrollingSpeed - (float)accelCoef * level.scrollingSpeedDec, level.minScrollingSpeed);
 			coinTarget += accelCoef * coinStep;
-		}
-
-		if (scrollingSpeed >= level.maxScrollingSpeed) {
-			scrollingSpeed = level.minScrollingSpeed;		
 		}
 	}
 
@@ -136,17 +134,21 @@ public class LevelGenerator : MonoBehaviour {
 		MoveBlocks ();
 	}
 
-	private void GetTransitionRequest(){
-		Hero.STATE heroState = hero.GetComponent <Hero>().state;
-		if (Input.GetKey(KeyCode.LeftArrow) && heroState == Hero.STATE.RUNNING){
-			StartTransition(false);
-		}
-		if (Input.GetKey(KeyCode.RightArrow) && heroState == Hero.STATE.RUNNING){
-			StartTransition(true);
-		}
-	}
-
-
+//	private void GetTransitionRequest(){
+//		Hero.STATE heroState = hero.GetComponent <Hero>().state;
+//		if (heroState == Hero.STATE.RUNNING){
+//			if (Input.touchCount > 0 && Input.GetTouch (0).phase == TouchPhase.Moved){
+//				Vector2 delta = Input.GetTouch(0).deltaPosition;
+//				Vector2 pos = Input.GetTouch(0).position;
+//				float det = (pos.x-Screen.width) * delta.y - (pos.y-Screen.height) * delta.x;
+//
+//				if (det>0)
+//					StartTransition(false);
+//				else
+//					StartTransition(true);
+//			}
+//		}
+//	}
 
 	//Creates level block
 	private void CreateBlock(GameObject blockPrefab, LevelBlock.ORIENTATION orientation, float z, bool adjust){
@@ -240,6 +242,27 @@ public class LevelGenerator : MonoBehaviour {
 		}
 	}
 
+	private void DisplayArrows(){
+		Hero.STATE heroState = hero.GetComponent <Hero>().state;
+		Rect leftArrowRect = new Rect (0.05F * Screen.width, 
+		                               Screen.height - 0.05F * Screen.width - 0.2F * Screen.width,
+		                          	   0.2F * Screen.width,
+		                         	   0.2F * Screen.width);
+		Rect rightArrowRect = new Rect (Screen.width - 0.05F * Screen.width - 0.2F * Screen.width, 
+		                                Screen.height - 0.05F * Screen.width - 0.2F * Screen.width,
+			                            0.2F * Screen.width,
+			                            0.2F * Screen.width);
+
+		GUI.DrawTexture (leftArrowRect, leftTexture);
+		if (heroState == Hero.STATE.RUNNING && GUI.Button(leftArrowRect, leftTexture)) {
+			StartTransition(false);
+		}
+		GUI.DrawTexture (rightArrowRect, rightTexture);
+		if (heroState == Hero.STATE.RUNNING && GUI.Button(rightArrowRect, rightTexture)) {
+			StartTransition(true);
+		}
+	}
+
 	private void DisplayLife(){
 		Hero heroScript = hero.GetComponent <Hero>();
 		float screenFraction = Screen.width/10;
@@ -302,7 +325,7 @@ public class LevelGenerator : MonoBehaviour {
 
 	private void ScrollingUpdate(){
 		Scroll ();
-		GetTransitionRequest();
+//		GetTransitionRequest();
 		checkHeroState ();
 	}
 
@@ -323,11 +346,13 @@ public class LevelGenerator : MonoBehaviour {
 	private void ScrollingOnGUI (){
 		DisplayLife();
 		DisplayCoin ();
+		DisplayArrows();
 	}
 
 	private void TransitionOnGUI (){
 		DisplayLife();
 		DisplayCoin ();
+		DisplayArrows();
 	}
 
 	void Start ()

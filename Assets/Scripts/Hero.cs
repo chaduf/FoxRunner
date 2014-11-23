@@ -42,12 +42,15 @@ public class Hero : MonoBehaviour {
 		transform.Translate (new Vector3 (0, 1E-1F, 0));
 		rigidbody.velocity += power*transform.up;
 		state = STATE.AERIAL;
+		this.audio.Play ();
 
 	} 
 
 	private void RunningUpdate(){
-			this.animation.Play ("Run");
-		if (Input.GetKey(KeyCode.Space)){
+		this.animation.Play ("Run");
+		Vector2 screenCenter = new Vector2(Screen.width/2, Screen.height/2);
+		if (Input.touchCount > 0 && Input.GetTouch (0).phase == TouchPhase.Stationary && 
+		    (Input.GetTouch (0).position - screenCenter).magnitude < Screen.width/2.0F){
 			Jump (jumpPower);
 		}
 
@@ -158,9 +161,9 @@ public class Hero : MonoBehaviour {
 		}
 	}
 
-//	void OnTriggerEnter(Collider collider){
-//		if (collider.gameObject.tag == "PlatformEdge"){
-//			Die ();
-//		}
-//	}
+	void OnTriggerEnter(Collider collider){
+		if (collider.gameObject.tag == "PlatformEdge"){
+			Die ();
+		}
+	}
 }
