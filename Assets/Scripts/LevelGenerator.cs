@@ -64,6 +64,13 @@ public class LevelGenerator : MonoBehaviour {
 
 	//Utilities functions
 
+	private void DestroyHero(){
+		CameraManager camManagerScript = camera.GetComponent<CameraManager> ();
+		camManagerScript.hero = null;
+
+		Destroy (hero);
+	}
+
 	private void DestroyLevel(){
 		foreach (GameObject block in createdBlocks) {
 			Destroy(block);		
@@ -83,6 +90,10 @@ public class LevelGenerator : MonoBehaviour {
 			int accelCoef = (coinTarget - heroScript.coin)/coinStep + 1;
 			scrollingSpeed = Mathf.Max (scrollingSpeed - (float)accelCoef * level.scrollingSpeedDec, level.minScrollingSpeed);
 			coinTarget += accelCoef * coinStep;
+		}
+
+		if (scrollingSpeed >= level.maxScrollingSpeed) {
+			scrollingSpeed = level.minScrollingSpeed;		
 		}
 	}
 
@@ -110,7 +121,6 @@ public class LevelGenerator : MonoBehaviour {
 	}
 
 	private void Scroll(){
-
 		if (startPosition - lastBlock.transform.position.z > leveBlockStep) {
 			int index = Random.Range (0, level.blockPrefabs.Length);
 			LevelBlock.ORIENTATION orientation = (LevelBlock.ORIENTATION)Random.Range(0, 6);
@@ -120,7 +130,6 @@ public class LevelGenerator : MonoBehaviour {
 	}
 
 	private void Scroll(GameObject LevelBlockPrefab, LevelBlock.ORIENTATION orientation){
-	
 		if (startPosition - lastBlock.transform.position.z > leveBlockStep) {
 			CreateBlock(LevelBlockPrefab, orientation);
 		}
@@ -217,8 +226,16 @@ public class LevelGenerator : MonoBehaviour {
 		Hero heroScript = (Hero)hero.GetComponent<Hero> ();
 		switch (heroScript.state){
 			case Hero.STATE.DEAD:
-				if (state == STATE.SCROLLING)
-					RestartLevel();
+			heroScript.life--;
+			if (heroScript.life < 1){
+				DisableLevel();
+				GameManager gameManager = GameManager.GetInstance();
+				gameManager.score = heroScript.coin;
+				gameManager.state = GameManager.STATE.GAME_OVER;
+				return;
+			}
+			if (state == STATE.SCROLLING)
+				RestartLevel();
 				break;
 		}
 	}
@@ -257,7 +274,7 @@ public class LevelGenerator : MonoBehaviour {
 
 		GUI.DrawTexture(coinTexturePos, coinTexture);
 
-		coinTextStyle.font = GameManager.getInstance ().mainFont;
+		coinTextStyle.font = GameManager.GetInstance ().mainFont;
 		coinTextStyle.alignment = TextAnchor.MiddleLeft;
 		coinTextStyle.normal.textColor = Color.white;
 		coinTextStyle.fontSize = 40;
@@ -269,11 +286,9 @@ public class LevelGenerator : MonoBehaviour {
 		GUI.Label (coinTextPos, coinText, coinTextStyle);
 	}
 
-
 	// Runtime functions
 
 	private void StartingUpdate(){
-		Debug.Log ("Start");
 		Scroll (level.startBlockPrefab, startLevelBlockOrientation);
 		WaitStart ();
 	}
@@ -286,16 +301,13 @@ public class LevelGenerator : MonoBehaviour {
 	}
 
 	private void ScrollingUpdate(){
-		Debug.Log ("Scroll");
 		Scroll ();
 		GetTransitionRequest();
 		checkHeroState ();
 	}
 
 	private void DisabledUpdate(){
-		if (Input.GetKeyDown (KeyCode.Space)) {
-			EnableLevel();		
-		}
+
 	}
 
 	private void StartingOnGUI(){
@@ -368,12 +380,13 @@ public class LevelGenerator : MonoBehaviour {
 	
 	public void DisableLevel(){
 		DestroyLevel ();
+		DestroyHero();
 		state = STATE.DISABLED;
 	}
 	
 	public void EnableLevel(){
 		if (hero){
-			Destroy(hero);
+			DestroyHero();
 		}
 		
 		hero = (GameObject)Instantiate (heroPrefab, 

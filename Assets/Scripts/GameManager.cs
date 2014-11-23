@@ -6,13 +6,12 @@ public class GameManager : MonoBehaviour {
 		MENU,
 		LEVEL_SELECT,
 		GAME,
-		PAUSE,
 		LOADING,
-		GAME_OVER,
-		WIN
+		GAME_OVER
 	}
 
 	private static GameManager instance;
+	private AudioSource ylvis;
 
 	public STATE state = STATE.MENU;
 
@@ -23,6 +22,7 @@ public class GameManager : MonoBehaviour {
 	public Texture2D emptyScreenTexture;
 	public Texture2D gameOverTexture;
 
+	public int score;
 	private GUIStyle textStyle; 
 
 	private IEnumerator LoadLevel(int index){
@@ -32,6 +32,7 @@ public class GameManager : MonoBehaviour {
 
 		state = STATE.GAME;
 		levelGenScript.EnableLevel ();
+		score = 0;
 		return null;
 	}
 
@@ -44,44 +45,84 @@ public class GameManager : MonoBehaviour {
 		GUI.DrawTexture (titleRect, titleTexture);
 	}
 
-	private void DisplayStartButton (){
-		GUIContent startButtonContent = new GUIContent("Start");
+	private void DisplayGameOver(){
+		float padding = Screen.width / 50.0F;
+		float gameOverRatio = gameOverTexture.width / gameOverTexture.height;
+		Rect gameOverRect = new Rect (0.1F*Screen.width + 0.1F*Screen.width * Mathf.Sin(0.25F * 2.0F * Mathf.PI * Time.time), 
+		                              0.1F*Screen.height + 0.2F*Screen.height * Mathf.Cos(0.25F * 2.0F * Mathf.PI * Time.time), 
+		                              0.8F*Screen.width, 0.8F*Screen.width / gameOverRatio);
+		GUI.DrawTexture (gameOverRect, gameOverTexture);
+	}
+
+	private bool DisplayButton(string text, float left, float top){
+		GUIContent content = new GUIContent(text);
 		float minWidth;
 		float maxWidth;
-		float startButtonHeight;
-		textStyle.CalcMinMaxWidth(startButtonContent, out minWidth, out maxWidth);
-		startButtonHeight = textStyle.CalcHeight (startButtonContent, maxWidth);
-		Rect startButtonRect = new Rect (0.4F * Screen.width, 0.6F * Screen.height, maxWidth, startButtonHeight);
-		if (GUI.Button(startButtonRect, startButtonContent, textStyle)){
+		float buttonHeight;
+		textStyle.CalcMinMaxWidth(content, out minWidth, out maxWidth);
+		buttonHeight = textStyle.CalcHeight (content, maxWidth);
+		Rect buttonRect = new Rect (left* Screen.width, top * Screen.height, maxWidth, buttonHeight);
+
+		return GUI.Button (buttonRect, content, textStyle);
+	}
+
+	private void DisplayStartButton (){
+		if (DisplayButton("Start", 0.4F, 0.6F)){
 			LoadLevel (0);
 			state = STATE.LOADING;
 		}
 	}
 
 	private void DisplayLvSelectButton(){
-		GUIContent lvSelectButtonContent = new GUIContent("Select level");
-		float minWidth;
-		float maxWidth;
-		float lvSelectButtonHeight;
-		textStyle.CalcMinMaxWidth(lvSelectButtonContent, out minWidth, out maxWidth);
-		lvSelectButtonHeight = textStyle.CalcHeight (lvSelectButtonContent, maxWidth);
-		Rect startButtonRect = new Rect (0.4F * Screen.width, 0.7F * Screen.height, maxWidth, lvSelectButtonHeight);
-		if (GUI.Button (startButtonRect, lvSelectButtonContent, textStyle)) {
+		if (DisplayButton("Select level", 0.4F, 0.7F)){
 			state = STATE.LEVEL_SELECT;
 		}
 	}
 
 	public void DisplayQuitButton(){
-		GUIContent quitButtonContent = new GUIContent("Quit");
+		if (DisplayButton("Quit", 0.4F, 0.8F)){
+			Application.Quit();
+		}
+	}
+
+	private void DispQuitRetButtons(){
+		if (DisplayButton("Return", 0.2F, 0.8F)){
+			state = STATE.MENU;
+		}
+		
+		if (DisplayButton("Quit", 0.2F, 0.9F)){
+			Application.Quit();
+		}
+	}
+
+	private void DisplayLevelSelect(){
+		Vector2 scrollPosition = Vector2.zero;
+		float interspace = 50.0F;
+		Rect container = new Rect (0.1F * Screen.width, 0.1F * Screen.height, 0.9F * Screen.width, 0.7F * Screen.height);
+		Rect viewRect = new Rect(0,0, 0.9F*Screen.width, levels.Length*interspace);
+		
+		for (int i=0; i<levels.Length; i++) {
+			GUIContent quitButtonContent = new GUIContent("Quit");
+		}
+		scrollPosition = GUI.BeginScrollView (container, scrollPosition, viewRect);
+		for (int i=0; i<levels.Length; i++) {
+			Rect levelButtonRect = new Rect(0, i*interspace, viewRect.width, interspace);
+			GUIContent levelButtonContent = new GUIContent("Level " + (i+1));
+			if (GUI.Button (levelButtonRect, levelButtonContent, textStyle)) {
+				LoadLevel(i);
+			}
+		}
+		GUI.EndScrollView();
+	}
+
+	private void DisplayScore(){
+		GUIContent content = new GUIContent ("Score: " + score.ToString ());
 		float minWidth;
 		float maxWidth;
-		float quitButtonHeight;
-		textStyle.CalcMinMaxWidth(quitButtonContent, out minWidth, out maxWidth);
-		quitButtonHeight = textStyle.CalcHeight (quitButtonContent, maxWidth);
-		Rect startButtonRect = new Rect (0.4F * Screen.width, 0.8F * Screen.height, maxWidth, quitButtonHeight);
-		if (GUI.Button (startButtonRect, quitButtonContent, textStyle)) {
-			state = STATE.LEVEL_SELECT;
-		}
+
+		textStyle.CalcMinMaxWidth (content, out minWidth, out maxWidth);
+		Rect scorePos = new Rect ((Screen.width-maxWidth)/2, 0.6F * Screen.height, maxWidth, 50);
+		GUI.TextArea (scorePos, content.text, textStyle);
 	}
 
 	private void MenuOnGui(){
@@ -91,26 +132,32 @@ public class GameManager : MonoBehaviour {
 		DisplayQuitButton ();
 	}
 
-	private void LevelSelectOnGUI(){
-		Vector2 scrollPosition = Vector2.zero;
-		Rect container = new Rect (0.05F * Screen.width, 0.05F * Screen.height, 0.9F * Screen.width, 0.9F * Screen.height);
-		Rect viewRect;
-		float height=0;
-		float width;
-		float altHeight;
-		for (int i=0; i<levels.Length; i++) {
-			GUIContent quitButtonContent = new GUIContent("Quit");		
-		}
-		//scrollPosition = GUI.BeginScrollView (container, scrollPosition, viewRect);
-
-		GUI.EndScrollView();
+	private void LevelSelectOnGUI () {
+		DisplayLevelSelect ();
+		DispQuitRetButtons ();
 	}
-	
+
+	private void GameOverOnGui(){
+		DisplayGameOver ();
+		DispQuitRetButtons ();
+		DisplayScore ();
+		ylvis.Stop();
+	}
+
 	//GUI management
 	void OnGUI(){
 		switch (state) {
 		case STATE.MENU:
 			MenuOnGui();
+			break;
+		
+		case STATE.LEVEL_SELECT:
+			LevelSelectOnGUI();
+			break;
+		
+
+		case STATE.GAME_OVER:
+			GameOverOnGui();
 			break;
 		}
 	}
@@ -119,19 +166,21 @@ public class GameManager : MonoBehaviour {
 	void Start () {
 		instance = this;
 		textStyle = new GUIStyle ();
-		textStyle.font = GameManager.getInstance ().mainFont;
+		textStyle.font = GameManager.GetInstance ().mainFont;
 		textStyle.alignment = TextAnchor.MiddleCenter;
 		textStyle.normal.textColor = Color.white;
 		textStyle.fontSize = 40;
+		ylvis = this.audio;
+		ylvis.Play ();
 
 	}
 	
 	// Update is called once per frame
 	void Update () {
-	
+		
 	}
 
-	public static GameManager getInstance(){
+	public static GameManager GetInstance(){
 		return instance;
 	}
 }

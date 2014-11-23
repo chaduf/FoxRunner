@@ -29,13 +29,13 @@ public class CameraManager : MonoBehaviour {
 	}
 
 	private void LookHeroUpdate(){
-		movSmoother.transform.position = transform.position;
-		movSmoother.transform.LookAt(hero.transform.position);
-
 		if (!hero) {
 			state = STATE.LOOK_FORWARD;
 			return;
 		}
+
+		movSmoother.transform.position = transform.position;
+		movSmoother.transform.LookAt(hero.transform.position);
 		
 		transform.rotation = Quaternion.Slerp (transform.rotation, 
 		                                       movSmoother.transform.rotation, 

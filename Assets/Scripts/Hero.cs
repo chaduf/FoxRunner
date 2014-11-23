@@ -46,15 +46,13 @@ public class Hero : MonoBehaviour {
 	} 
 
 	private void RunningUpdate(){
-		if (animation.IsPlaying("Jump") == false)
-		{
-			
 			this.animation.Play ("Run");
-			
-		}
 		if (Input.GetKey(KeyCode.Space)){
 			Jump (jumpPower);
+		}
 
+		if (transform.position.y < -maxDepth){
+			Die ();
 		}
 	}
 
@@ -69,7 +67,6 @@ public class Hero : MonoBehaviour {
 		}
 
 		if (transform.position.y < -maxDepth){
-			Debug.Log ("died");
 			Die ();
 		}
 	}
@@ -101,10 +98,6 @@ public class Hero : MonoBehaviour {
 
 	public void Die(){
 		state = STATE.DEAD;
-		coin = 0;
-		if (life > 0) {
-			life--;
-		}
 	} 
 
 	// Use this for initialization
@@ -165,9 +158,9 @@ public class Hero : MonoBehaviour {
 		}
 	}
 
-	void OnTriggerEnter(Collider collider){
-		if (collider.gameObject.tag == "PlatformEdge"){
-			Die ();
-		}
-	}
+//	void OnTriggerEnter(Collider collider){
+//		if (collider.gameObject.tag == "PlatformEdge"){
+//			Die ();
+//		}
+//	}
 }
